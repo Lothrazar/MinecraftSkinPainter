@@ -9,6 +9,15 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+  <aside id="fav-sidebar">
+    <div class="fav-header" onclick="toggleSidebar()" title="Close favorites">
+      <span class="fav-title">★ Favorites</span>
+    </div>
+    <div class="fav-list" id="fav-list"></div>
+  </aside>
+
+  <button class="fav-open-btn" id="fav-toggle-btn" onclick="toggleSidebar()" title="Favorites">☆</button>
+
   <header>
     <div class="logo">skin<span>.</span>lookup</div>
     <div class="tagline">Minecraft Java Edition · Player Skin Viewer</div>
@@ -36,7 +45,7 @@
       <div class="loader-dot"></div>
     </div>
 
-    <!-- ── Phase 1: Result card ── -->
+    <!--  Result card  -->
     <div id="result">
       <div class="result-header">
         <img class="result-avatar" id="avatar-img" src="" alt="" onerror="this.style.display='none'" onload="this.style.display=''" />
@@ -70,13 +79,14 @@
         <a class="btn" id="dl-skin" download>↓ Download skin</a>
         <a class="btn" id="dl-cape" download style="display:none">↓ Download cape</a>
         <button class="btn" onclick="toggle3DViewer()">▶ 3D View</button>
+        <button class="btn" id="fav-btn" onclick="toggleFavorite()">☆ Save</button>
         <button class="btn btn-accent" id="edit-btn" onclick="openEditor()">✏ Edit skin</button>
       </div>
     </div>
     </div><!-- /.top-wrap -->
 
     <div id="panels-wrap">
-    <!-- ── Phase 2: Editor ── -->
+    <!--  Editor  -->
     <div id="editor">
       <div class="editor-header">
         <span class="editor-title">SKIN EDITOR</span>
@@ -126,7 +136,7 @@
       </div>
     </div>
 
-    <!-- ── Phase 7: 3D Viewer ── -->
+    <!--    3D Viewer  -->
     <div id="viewer-3d" style="display:none">
       <div class="editor-header">
         <span class="editor-title">3D VIEWER</span>
@@ -150,12 +160,10 @@
           <button class="tool-btn"        id="anim-btn-none"   onclick="setAnimation('none')">None</button>
         </div>
         <div class="back-toggles" id="back-toggles" style="display:none">
-          <label class="cape-toggle-label">
-            <input type="checkbox" id="cape-toggle" onchange="toggle3DBack('cape')" checked /> Cape
-          </label>
-          <label class="cape-toggle-label">
-            <input type="checkbox" id="elytra-toggle" onchange="toggle3DBack('elytra')" /> Elytra
-          </label>
+          <span class="default-skins-label">Back:</span>
+          <button class="tool-btn active" id="back-cape"   onclick="toggle3DBack('cape')">Cape</button>
+          <button class="tool-btn"        id="back-elytra" onclick="toggle3DBack('elytra')">Elytra</button>
+          <button class="tool-btn"        id="back-off"    onclick="toggle3DBack('off')">Off</button>
         </div>
       </div>
     </div>
@@ -168,7 +176,7 @@
     <a href="#" target="_blank" rel="noopener">View source</a>
   </footer>
 
-  <script src="https://unpkg.com/skinview3d@3.4.1/bundles/skinview3d.bundle.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/skinview3d@3.4.1/bundles/skinview3d.bundle.js"></script>
   <script src="script.js"></script>
 </body>
 </html>
