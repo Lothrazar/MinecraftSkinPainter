@@ -19,10 +19,12 @@ security reasons.
 - Replaces the need to call `api.mojang.com` + `sessionserver.mojang.com` separately
 - Source and docs: https://github.com/Electroid/mojang-api
 
-### Crafatar (no key required)
-- Endpoint: `https://crafatar.com/avatars/:uuid?size=40&overlay=true`
-- Used for the player head avatar shown on the result card
-- Source and docs: https://crafatar.com
+### Mineatar (no key required)
+- Endpoint: `https://api.mineatar.io/face/:uuid?scale=5`
+- Used for the player face avatar shown on the result card and favorites sidebar
+- `scale` multiplies the native 8×8 face texture (scale=5 → 40 px, scale=4 → 32 px)
+- Overlay (helmet layer) is on by default
+- Source and docs: https://mineatar.io/docs
 
 ## Libraries
 

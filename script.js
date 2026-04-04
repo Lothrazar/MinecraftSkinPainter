@@ -59,7 +59,7 @@ async function lookup() {
     currentPlayerName = displayName;
     currentUuid = uuid;
 
-    $('avatar-img').src = `https://crafatar.com/avatars/${uuid}?size=40&overlay=true`;
+    $('avatar-img').src = `https://api.mineatar.io/face/${uuid}?scale=5`;
     $('result-name').textContent = displayName;
     $('result-uuid').textContent = uuid.replace(/(.{8})(.{4})(.{4})(.{4})(.{12})/, '$1-$2-$3-$4-$5');
     $('skin-img').src = skinUrl;
@@ -722,7 +722,7 @@ function renderFavorites() {
 
     const img = document.createElement('img');
     img.className = 'fav-avatar';
-    img.src = `https://crafatar.com/avatars/${f.uuid}?size=32&overlay=true`;
+    img.src = `https://api.mineatar.io/face/${f.uuid}?scale=4`;
     img.onerror = () => { img.style.display = 'none'; };
     img.alt = '';
 
