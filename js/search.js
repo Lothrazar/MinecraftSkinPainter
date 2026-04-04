@@ -23,8 +23,10 @@ async function lookup() {
   setLoading(true);
   try {
     const res = await fetch(`https://api.ashcon.app/mojang/v2/user/${encodeURIComponent(name)}`);
-    if (res.status === 404) throw new Error(`Player "${name}" not found.`);
-    if (!res.ok)            throw new Error(`API error (${res.status}). Try again shortly.`);
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.reason || `API error (${res.status}). Try again shortly.`);
+    }
 
     const data        = await res.json();
     const uuid        = data.uuid;
