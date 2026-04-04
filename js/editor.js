@@ -93,7 +93,8 @@ function toggleGrid() {
 function drawGrid() {
   const gridH = skinIsLegacy ? 256 : 512;
   gctx.clearRect(0, 0, 512, 512);
-  gctx.strokeStyle = 'rgba(93,252,141,0.18)';
+  const accentRgb = getComputedStyle(document.documentElement).getPropertyValue('--accent-rgb').trim();
+  gctx.strokeStyle = `rgba(${accentRgb},0.18)`;
   gctx.lineWidth = 0.5;
   for (let x = 0; x <= 512; x += SCALE) {
     gctx.beginPath(); gctx.moveTo(x, 0); gctx.lineTo(x, gridH); gctx.stroke();
