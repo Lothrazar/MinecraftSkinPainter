@@ -168,13 +168,22 @@
   </main>
 
   <footer>
-    <a href="https://github.com/Electroid/mojang-api" target="_blank" rel="noopener">Player data via api.ashcon.app</a>
+    <div class="theme-picker">
+      <span class="theme-label">Theme</span>
+      <button class="theme-dot" data-theme="cyan"     style="background:#22d3ee" title="Ice"      onclick="applyTheme('cyan')"></button>
+      <button class="theme-dot" data-theme="green"    style="background:#5dfc8d" title="Matrix"   onclick="applyTheme('green')"></button>
+      <button class="theme-dot" data-theme="cobalt"   style="background:#4d9fff" title="Cobalt"   onclick="applyTheme('cobalt')"></button>
+      <button class="theme-dot" data-theme="amber"    style="background:#f0b429" title="Amber"    onclick="applyTheme('amber')"></button>
+      <button class="theme-dot" data-theme="rose"     style="background:#f06292" title="Rose"     onclick="applyTheme('rose')"></button>
+      <button class="theme-dot" data-theme="lavender" style="background:#a78bfa" title="Lavender" onclick="applyTheme('lavender')"></button>
+    </div>
     <a href="https://help.minecraft.net/hc/en-us/articles/4408894664461-Minecraft-Java-Edition-Skins" target="_blank" rel="noopener">How to upload your skin ↗</a>
     <a href="#" target="_blank" rel="noopener">View source</a>
   </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/skinview3d@3.4.1/bundles/skinview3d.bundle.js"></script>
   <script src="js/state.js"></script>
+  <script src="js/themes.js"></script>
   <script src="js/defaults.js"></script>
   <script src="js/viewer3d.js"></script>
   <script src="js/editor.js"></script>
