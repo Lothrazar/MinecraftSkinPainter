@@ -78,7 +78,6 @@
       <div class="dl-row">
         <a class="btn" id="dl-skin" download>↓ Download skin</a>
         <a class="btn" id="dl-cape" download style="display:none">↓ Download cape</a>
-        <button class="btn" onclick="toggle3DViewer()">▶ 3D View</button>
         <button class="btn" id="fav-btn" onclick="toggleFavorite()">☆ Save</button>
         <button class="btn btn-accent" id="edit-btn" onclick="openEditor()">✏ Edit skin</button>
       </div>
@@ -93,7 +92,6 @@
         <span class="model-badge" id="editor-model-badge"></span>
         <span class="format-badge" id="format-badge" style="display:none">64×32 · Legacy</span>
         <div style="display:flex;gap:8px;">
-          <button class="btn" onclick="toggle3DViewer()">▶ 3D</button>
           <button class="btn" onclick="resetCanvas()">↺ Reset</button>
           <button class="btn" onclick="closeEditor()">✕ Close</button>
         </div>
@@ -141,7 +139,6 @@
       <div class="editor-header">
         <span class="editor-title">3D VIEWER</span>
         <span class="model-badge" id="viewer-3d-model-badge"></span>
-        <button class="btn" onclick="close3DViewer()">✕ Close</button>
       </div>
       <div class="viewer-3d-body">
         <canvas id="skin-3d-canvas"></canvas>

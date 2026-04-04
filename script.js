@@ -34,6 +34,7 @@ function setLoading(on) {
   if (on) {
     $('result').style.display = 'none';
     $('editor').style.display = 'none';
+    close3DViewer();
     setError('');
   }
 }
@@ -323,8 +324,8 @@ async function openEditor() {
     img.src = blobUrl;
 
     $('editor').style.display = 'block';
-    updatePanelsLayout();
     $('editor').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    open3DViewer();
   } catch (e) {
     setError('Could not load skin into editor: ' + e.message);
   }
@@ -332,7 +333,7 @@ async function openEditor() {
 
 function closeEditor() {
   $('editor').style.display = 'none';
-  updatePanelsLayout();
+  close3DViewer();
 }
 
 function updatePanelsLayout() {
@@ -610,7 +611,7 @@ function downloadEdited() {
   }, 'image/png');
 }
 
-// ── Sync editor canvas → 3D viewer (Phase 9) ──
+//Sync editor canvas → 3D viewer 
 function syncToViewer() {
   if (!viewer3d) return;
   const tmp = document.createElement('canvas');
@@ -623,15 +624,15 @@ function syncToViewer() {
   viewer3d.loadSkin(tmp.toDataURL('image/png'), { model: skinIsSlim ? 'slim' : 'default' });
 }
 
-function toggle3DViewer() {
-  if ($('viewer-3d').style.display !== 'none') {
-    close3DViewer();
-  } else {
-    open3DViewer();
-  }
-}
+// function toggle3DViewer() {
+//   if ($('viewer-3d').style.display !== 'none') {
+//     close3DViewer();
+//   } else {
+//     open3DViewer();
+//   }
+// }
 
-// ── Favorites (Phase 6) ──
+// Favorites
 const FAV_KEY = 'mcpaint_favorites';
 
 function loadFavorites() {
