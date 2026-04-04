@@ -12,9 +12,23 @@ security reasons.
 
 ## API usage
 
-### Mojang API (no key required)
-- `api.mojang.com` — username → UUID lookup
-- `sessionserver.mojang.com` — UUID → profile + textures (skin/cape URLs)
-- Rate limit: ~200 requests per 2 minutes per IP
-- The textures response is a base64-encoded JSON blob inside a `properties` array
+### ashcon.app (no key required)
+- Endpoint: `https://api.ashcon.app/mojang/v2/user/:username`
+- Community-maintained CORS-friendly wrapper around the Mojang API
+- Returns UUID, username, skin URL, cape URL, and slim (Alex) flag in a single request
+- Replaces the need to call `api.mojang.com` + `sessionserver.mojang.com` separately
+- Source and docs: https://github.com/Electroid/mojang-api
+
+### Crafatar (no key required)
+- Endpoint: `https://crafatar.com/avatars/:uuid?size=40&overlay=true`
+- Used for the player head avatar shown on the result card
+- Source and docs: https://crafatar.com
+
+## Libraries
+
+### skinview3d
+- 3D Minecraft skin renderer built on Three.js
+- Loaded via CDN: `https://unpkg.com/skinview3d@3.4.1/bundles/skinview3d.bundle.js`
+- Handles Steve/Alex models, cape rendering, and animations (Idle, Walk, Run, Wave, etc.)
+- Source: https://github.com/bs-community/skinview3d
 
