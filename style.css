@@ -32,7 +32,7 @@ body::before {
   z-index: 0;
 }
 
-/* ── Favorites sidebar ── */
+/*  Favorites sidebar  */
 #fav-sidebar {
   position: fixed;
   left: 0;
@@ -217,7 +217,7 @@ main {
   max-width: 720px;
 }
 
-/* ── Dual-panel layout ── */
+/*  Dual-panel layout  */
 #panels-wrap {
   display: flex;
   flex-direction: column;
@@ -304,7 +304,7 @@ main {
   display: none;
 }
 
-/* ── Result card ── */
+/*  Result card  */
 #result {
   display: none;
   background: var(--surface);
@@ -477,7 +477,7 @@ main {
   40%            { transform: scale(1);   opacity: 1; }
 }
 
-/* ── Editor ── */
+/*  Editor  */
 #editor {
   display: none;
   background: var(--surface);
@@ -629,7 +629,7 @@ main {
   flex-wrap: wrap;
 }
 
-/* ── 3D Viewer ── */
+/*  3D Viewer  */
 #viewer-3d {
   display: none;
   background: var(--surface);
