@@ -1,5 +1,6 @@
-//  Favorites (localStorage) 
+//  Favorites (localStorage)
 const FAV_KEY = 'mcpaint_favorites';
+let favDragSrc = null; // index of the row currently being dragged
 
 function loadFavorites() {
   try { return JSON.parse(localStorage.getItem(FAV_KEY)) || []; }
@@ -31,7 +32,7 @@ function toggleFavorite() {
   if (idx >= 0) {
     favs.splice(idx, 1);
   } else {
-    favs.push({ name: currentPlayerName, uuid: currentUuid, addedAt: Date.now() });
+    favs.unshift({ name: currentPlayerName, uuid: currentUuid, addedAt: Date.now() });
     // Auto-open sidebar when saving a new favorite
     if (!document.body.classList.contains('sidebar-open')) toggleSidebar();
   }
@@ -70,7 +71,8 @@ function toggleSidebar() {
 }
 
 function renderFavorites() {
-  const favs = loadFavorites().sort((a, b) => b.addedAt - a.addedAt);
+  // Array order in localStorage is the display order. drag drop to edit
+  const favs = loadFavorites();
   const list = $('fav-list');
   list.innerHTML = '';
 
@@ -82,10 +84,56 @@ function renderFavorites() {
     return;
   }
 
-  for (const f of favs) {
+  favs.forEach((f, i) => {
     const item = document.createElement('div');
     item.className = 'fav-item';
-    item.onclick   = () => lookupFavorite(f.name);
+    item.draggable = true;
+
+    // ── Drag events ──────────────────────────────────────────────────────────
+    item.addEventListener('dragstart', e => {
+      favDragSrc = i;
+      item.classList.add('fav-dragging');
+      e.dataTransfer.effectAllowed = 'move';
+    });
+
+    item.addEventListener('dragend', () => {
+      favDragSrc = null;
+      list.querySelectorAll('.fav-item').forEach(el => {
+        el.classList.remove('fav-dragging', 'fav-drag-over');
+      });
+    });
+
+    item.addEventListener('dragover', e => {
+      if (favDragSrc === null || favDragSrc === i) return;
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      list.querySelectorAll('.fav-item').forEach(el => el.classList.remove('fav-drag-over'));
+      item.classList.add('fav-drag-over');
+    });
+
+    item.addEventListener('dragleave', () => {
+      item.classList.remove('fav-drag-over');
+    });
+
+    item.addEventListener('drop', e => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (favDragSrc === null || favDragSrc === i) return;
+      const current = loadFavorites();
+      const [moved] = current.splice(favDragSrc, 1);
+      current.splice(i, 0, moved);
+      saveFavorites(current);
+      renderFavorites();
+    });
+
+    // ── Click to lookup (browser won't fire this after a real drag) ──────────
+    item.addEventListener('click', () => lookupFavorite(f.name));
+
+    // ── Children ─────────────────────────────────────────────────────────────
+    const handle = document.createElement('span');
+    handle.className   = 'fav-drag-handle';
+    handle.textContent = '⠿';
+    handle.setAttribute('aria-hidden', 'true');
 
     const img = document.createElement('img');
     img.className = 'fav-avatar';
@@ -103,9 +151,9 @@ function renderFavorites() {
     remove.title       = 'Remove';
     remove.onclick     = e => { e.stopPropagation(); removeFavorite(f.uuid); };
 
-    item.append(img, name, remove);
+    item.append(handle, img, name, remove);
     list.appendChild(item);
-  }
+  });
 }
 
 function lookupFavorite(name) {

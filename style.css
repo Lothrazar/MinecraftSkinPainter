@@ -119,8 +119,22 @@ footer {
   padding: 0.45rem 0.75rem;
   cursor: pointer;
   transition: background 0.1s;
+  border-top: 2px solid transparent;
 }
 .fav-item:hover { background: rgba(var(--accent-rgb),0.06); }
+.fav-item.fav-dragging  { opacity: 0.35; }
+.fav-item.fav-drag-over { border-top-color: var(--accent); }
+
+.fav-drag-handle {
+  color: var(--border);
+  font-size: 0.75rem;
+  line-height: 1;
+  cursor: grab;
+  flex-shrink: 0;
+  transition: color 0.1s;
+  user-select: none;
+}
+.fav-item:hover .fav-drag-handle { color: var(--muted); }
 
 .fav-avatar {
   width: 28px;
