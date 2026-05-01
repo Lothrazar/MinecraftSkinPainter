@@ -1,7 +1,3 @@
-//  Shared helpers 
-const $ = id => document.getElementById(id);
-const qp = q => new URLSearchParams(window.location.search).get(q);
-
 //  Shared state ─
 let currentSkinUrl    = null;
 let currentPlayerName = null;
