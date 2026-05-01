@@ -1,8 +1,4 @@
-//  3D Viewer ─
-let viewer3d         = null;
-let viewer3dSkinBlob = null;
-let viewer3dCapeBlob = null;
-let currentAnimKey   = 'idle';
+import { state } from './state.js';
 
 // animations api: https://github.com/bs-community/skinview3d/blob/55d5c06b62505fdc204d8addb61da1d67ee07fa8/src/animation.ts#L383
 const ANIM_MAP = {
@@ -17,91 +13,112 @@ const ANIM_MAP = {
   none:   null,
 };
 
-async function open3DViewer() {
-  if (!currentSkinUrl) return;
-  close3DViewer(); // dispose any existing viewer + revoke old blobs
-  setError('');
-
-  try {
-    // Fetch skin as blob (avoids canvas taint)
-    const skinRes  = await fetch(currentSkinUrl);
-    const skinBlob = await skinRes.blob();
-    viewer3dSkinBlob = URL.createObjectURL(skinBlob);
-
-    // Cape blob if a cape is loaded
-    viewer3dCapeBlob = null;
-    const capeEl = $('cape-img');
-    if (capeEl.src && $('cape-block').style.display !== 'none') {
-      try {
-        const capeRes  = await fetch(capeEl.src);
-        const capeBlob = await capeRes.blob();
-        viewer3dCapeBlob = URL.createObjectURL(capeBlob);
-      } catch (_) { /* cape is optional */ }
-    }
-
-    viewer3d = new skinview3d.SkinViewer({
-      canvas:         $('skin-3d-canvas'),
-      width:          300,
-      height:         420,
-      skin:           viewer3dSkinBlob,
-      model:          skinIsSlim ? 'slim' : 'default',
-      enableControls: true,
-      background:     0x0a0a0c,
-    });
-
-    if (viewer3dCapeBlob) viewer3d.loadCape(viewer3dCapeBlob);
-
-    // Initial animation
-    currentAnimKey = 'idle';
-    viewer3d.animation = new skinview3d.IdleAnimation();
-    updateAnimButtons();
-
-    // Back-equipment toggles (only shown when a cape is present)
-    $('back-toggles').style.display = viewer3dCapeBlob ? 'flex' : 'none';
-    if (viewer3dCapeBlob) toggle3DBack('cape'); // reset to cape on each open
-
-    // Model badge
-    const vb = $('viewer-3d-model-badge');
-    vb.textContent = skinIsSlim ? 'Alex' : 'Steve';
-    vb.className   = `model-badge ${skinIsSlim ? 'alex' : 'steve'}`;
-
-    $('viewer-3d').style.display = 'block';
-    updatePanelsLayout();
-    $('viewer-3d').scrollIntoView({ behavior: 'smooth', block: 'start' });
-
-  } catch (e) {
-    setError('Could not open 3D viewer: ' + e.message);
+export class Viewer3D {
+  // Callbacks injected from main.js:
+  //   setError      — msg => search.setError(msg)
+  //   updateLayout  — () => panels dual-class toggle
+  constructor({ setError, updateLayout }) {
+    this._setError     = setError;
+    this._updateLayout = updateLayout;
+    this._viewer       = null;
+    this._skinBlobUrl  = null;
+    this._capeBlobUrl  = null;
+    this._animKey      = 'idle';
   }
-}
 
-function close3DViewer() {
-  $('viewer-3d').style.display = 'none';
-  updatePanelsLayout();
-  if (viewer3d)         { viewer3d.dispose(); viewer3d = null; }
-  if (viewer3dSkinBlob) { URL.revokeObjectURL(viewer3dSkinBlob); viewer3dSkinBlob = null; }
-  if (viewer3dCapeBlob) { URL.revokeObjectURL(viewer3dCapeBlob); viewer3dCapeBlob = null; }
-}
+  async open() {
+    if (!state.currentSkinUrl) return;
+    this.close();
+    this._setError('');
 
-function setAnimation(key) {
-  if (!viewer3d) return;
-  currentAnimKey = key;
-  const factory = ANIM_MAP[key];
-  viewer3d.animation = factory ? factory() : null;
-  updateAnimButtons();
-}
+    try {
+      const skinRes  = await fetch(state.currentSkinUrl);
+      const skinBlob = await skinRes.blob();
+      this._skinBlobUrl = URL.createObjectURL(skinBlob);
 
-function updateAnimButtons() {
-  ['idle','walk','run','wave','fly','swim','crouch','hit','none'].forEach(k => {
-    $(`anim-btn-${k}`).classList.toggle('active', k === currentAnimKey);
-  });
-}
+      this._capeBlobUrl = null;
+      const capeEl = $('cape-img');
+      if (capeEl.src && $('cape-block').style.display !== 'none') {
+        try {
+          const capeRes  = await fetch(capeEl.src);
+          const capeBlob = await capeRes.blob();
+          this._capeBlobUrl = URL.createObjectURL(capeBlob);
+        } catch (_) { /* cape is optional */ }
+      }
 
-// Unified back-equipment toggle — 'cape', 'elytra', or 'off'
-function toggle3DBack(which) {
-  if (!viewer3d || !viewer3dCapeBlob) return;
-  ['back-cape', 'back-elytra', 'back-off'].forEach(id => $(id)?.classList.remove('active'));
-  $(`back-${which}`).classList.add('active');
-  if (which === 'cape')        viewer3d.loadCape(viewer3dCapeBlob);
-  else if (which === 'elytra') viewer3d.loadCape(viewer3dCapeBlob, { backEquipment: 'elytra' });
-  else                         viewer3d.loadCape(null);
+      this._viewer = new skinview3d.SkinViewer({
+        canvas:         $('skin-3d-canvas'),
+        width:          300,
+        height:         420,
+        skin:           this._skinBlobUrl,
+        model:          state.skinIsSlim ? 'slim' : 'default',
+        enableControls: true,
+        background:     0x0a0a0c,
+      });
+
+      if (this._capeBlobUrl) this._viewer.loadCape(this._capeBlobUrl);
+
+      this._animKey          = 'idle';
+      this._viewer.animation = new skinview3d.IdleAnimation();
+      this._updateAnimButtons();
+
+      $('back-toggles').style.display = this._capeBlobUrl ? 'flex' : 'none';
+      if (this._capeBlobUrl) this.toggle3DBack('cape');
+
+      const vb = $('viewer-3d-model-badge');
+      vb.textContent = state.skinIsSlim ? 'Alex' : 'Steve';
+      vb.className   = `model-badge ${state.skinIsSlim ? 'alex' : 'steve'}`;
+
+      $('viewer-3d').style.display = 'block';
+      this._updateLayout();
+      $('viewer-3d').scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    } catch (e) {
+      this._setError('Could not open 3D viewer: ' + e.message);
+    }
+  }
+
+  close() {
+    $('viewer-3d').style.display = 'none';
+    this._updateLayout();
+    if (this._viewer)      { this._viewer.dispose(); this._viewer = null; }
+    if (this._skinBlobUrl) { URL.revokeObjectURL(this._skinBlobUrl); this._skinBlobUrl = null; }
+    if (this._capeBlobUrl) { URL.revokeObjectURL(this._capeBlobUrl); this._capeBlobUrl = null; }
+  }
+
+  setAnimation(key) {
+    if (!this._viewer) return;
+    this._animKey = key;
+    const factory = ANIM_MAP[key];
+    this._viewer.animation = factory ? factory() : null;
+    this._updateAnimButtons();
+  }
+
+  toggle3DBack(which) {
+    if (!this._viewer || !this._capeBlobUrl) return;
+    ['back-cape', 'back-elytra', 'back-off'].forEach(id => $(id)?.classList.remove('active'));
+    $(`back-${which}`).classList.add('active');
+    if (which === 'cape')        this._viewer.loadCape(this._capeBlobUrl);
+    else if (which === 'elytra') this._viewer.loadCape(this._capeBlobUrl, { backEquipment: 'elytra' });
+    else                         this._viewer.loadCape(null);
+  }
+
+  // Called by Editor after every draw/undo/redo to keep 3D in sync
+  syncFromCanvas(canvas, skinHeight, skinIsLegacy, skinIsSlim) {
+    if (!this._viewer) return;
+    const tmp  = document.createElement('canvas');
+    tmp.width  = 64;
+    tmp.height = skinHeight;
+    const tctx = tmp.getContext('2d');
+    tctx.imageSmoothingEnabled = false;
+    const srcH = skinIsLegacy ? 256 : 512;
+    tctx.drawImage(canvas, 0, 0, 512, srcH, 0, 0, 64, skinHeight);
+    this._viewer.loadSkin(tmp.toDataURL('image/png'), { model: skinIsSlim ? 'slim' : 'default' });
+  }
+
+  _updateAnimButtons() {
+    ['idle', 'walk', 'run', 'wave', 'fly', 'swim', 'crouch', 'hit', 'none'].forEach(k => {
+      $(`anim-btn-${k}`).classList.toggle('active', k === this._animKey);
+    });
+  }
 }

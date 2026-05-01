@@ -1,7 +1,7 @@
-// DOM helpers
-const $   = id  => document.getElementById(id);
-const qs  = sel => document.querySelector(sel);
-const qsa = sel => document.querySelectorAll(sel);
+// DOM helpers — assigned to window so ES modules can access them as globals
+window.$   = id  => document.getElementById(id);
+window.qs  = sel => document.querySelector(sel);
+window.qsa = sel => document.querySelectorAll(sel);
 
 // URL query param helper
-const qp = q => new URLSearchParams(window.location.search).get(q);
+window.qp = q => new URLSearchParams(window.location.search).get(q);

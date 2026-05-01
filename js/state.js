@@ -1,25 +1,9 @@
-//  Shared state ─
-let currentSkinUrl    = null;
-let currentPlayerName = null;
-let currentUuid       = null;
-
-// Editor tool state
-let tool         = 'pencil';
-let drawing      = false;
-let brushColor   = '#ffffff';
-let brushSize    = 1;
-let gridVisible  = false;
-let regionVisible = false;
-
-// Skin metadata
-let skinHeight   = 64;
-let skinIsLegacy = false;
-let skinIsSlim   = false;
-
-// Canvas scale: 64 skin px × 8 = 512 canvas px
-const SCALE = 8;
-
-// Undo / redo stacks
-const undoStack = [];
-const redoStack = [];
-const MAX_UNDO  = 50;
+// Shared mutable state — imported as a single object so all modules mutate the same reference
+export const state = {
+  currentSkinUrl:    null,
+  currentPlayerName: null,
+  currentUuid:       null,
+  skinHeight:        64,
+  skinIsLegacy:      false,
+  skinIsSlim:        false,
+};

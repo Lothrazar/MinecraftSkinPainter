@@ -1,9 +1,4 @@
-//  Theme definitions ─
-// Each theme must supply every CSS custom property used in style.css.
-// --accent-rgb  : comma-separated R,G,B of --accent, used in rgba() calls
-// --accent-text : dark colour for text drawn on top of --accent backgrounds
-
-const THEMES = {
+export const THEMES = {
   cyan: {
     '--bg':          '#090e10',
     '--surface':     '#101a1e',
@@ -72,20 +67,10 @@ const THEMES = {
   },
 };
 
-//  Apply a theme by key 
-function applyTheme(key) {
+export function applyTheme(key) {
   const t = THEMES[key] || THEMES.cyan;
   const root = document.documentElement;
   Object.entries(t).forEach(([k, v]) => root.style.setProperty(k, v));
   localStorage.setItem('mcpaint_theme', key);
-
-  // Sync active state on picker dots
-  document.querySelectorAll('.theme-dot').forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.theme === key);
-  });
-
-  // Redraw grid immediately if it's visible so it picks up the new accent colour
-  if (typeof drawGrid === 'function' && typeof gridVisible !== 'undefined' && gridVisible) {
-    drawGrid();
-  }
+  qsa('.theme-dot').forEach(btn => btn.classList.toggle('active', btn.dataset.theme === key));
 }
