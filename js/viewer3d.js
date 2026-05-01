@@ -20,10 +20,12 @@ export class Viewer3D {
   constructor({ setError, updateLayout }) {
     this._setError     = setError;
     this._updateLayout = updateLayout;
-    this._viewer       = null;
-    this._skinBlobUrl  = null;
-    this._capeBlobUrl  = null;
-    this._animKey      = 'idle';
+    this._viewer          = null;
+    this._skinBlobUrl     = null;
+    this._capeBlobUrl     = null;
+    this._animKey         = 'idle';
+    this._outerLayerVisible = true;
+    this._autoRotate        = false;
   }
 
   async open() {
@@ -60,7 +62,11 @@ export class Viewer3D {
 
       this._animKey          = 'idle';
       this._viewer.animation = new skinview3d.IdleAnimation();
+      this._outerLayerVisible = true;
+      this._autoRotate        = false;
+      this._viewer.autoRotate = false;
       this._updateAnimButtons();
+      this._updateViewButtons();
 
       $('back-toggles').style.display = this._capeBlobUrl ? 'flex' : 'none';
       if (this._capeBlobUrl) this.toggle3DBack('cape');
@@ -114,6 +120,30 @@ export class Viewer3D {
     const srcH = skinIsLegacy ? 256 : 512;
     tctx.drawImage(canvas, 0, 0, 512, srcH, 0, 0, 64, skinHeight);
     this._viewer.loadSkin(tmp.toDataURL('image/png'), { model: skinIsSlim ? 'slim' : 'default' });
+  }
+
+  toggleOuterLayer() {
+    if (!this._viewer) return;
+    this._outerLayerVisible = !this._outerLayerVisible;
+    this._viewer.playerObject.skin.setOuterLayerVisible(this._outerLayerVisible);
+    this._updateViewButtons();
+  }
+
+  toggleAutoRotate() {
+    if (!this._viewer) return;
+    this._autoRotate = !this._autoRotate;
+    this._viewer.autoRotate = this._autoRotate;
+    this._updateViewButtons();
+  }
+
+  resetView() {
+    if (!this._viewer) return;
+    this._viewer.resetCameraPose();
+  }
+
+  _updateViewButtons() {
+    $('view-btn-outer').classList.toggle('active', this._outerLayerVisible);
+    $('view-btn-rotate').classList.toggle('active', this._autoRotate);
   }
 
   _updateAnimButtons() {

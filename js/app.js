@@ -82,6 +82,11 @@ export class App {
       $(`back-${w}`).addEventListener('click', () => this.viewer.toggle3DBack(w));
     });
 
+    // 3D viewer — view controls
+    $('view-btn-outer').addEventListener('click',  () => this.viewer.toggleOuterLayer());
+    $('view-btn-rotate').addEventListener('click', () => this.viewer.toggleAutoRotate());
+    $('view-btn-reset').addEventListener('click',  () => this.viewer.resetView());
+
     // Theme picker — applyTheme then redraw grid so it picks up the new accent colour
     qsa('.theme-dot').forEach(btn => {
       btn.addEventListener('click', () => {
