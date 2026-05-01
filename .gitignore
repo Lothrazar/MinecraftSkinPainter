@@ -2,3 +2,5 @@
 .cl*
 .idea
 dist/
+
+*.py

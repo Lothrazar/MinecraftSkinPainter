@@ -1,14 +1,30 @@
-# Minecraft Skin Tool
+# skin.painter
 
 A client-side Minecraft Java Edition player skin viewer and editor.
-No backend required — just serve the files locally.
+No backend required — runs entirely in the browser.
+
+**Live page:** https://lothrazar.github.io/MinecraftSkinPainter/
+
+## Features
+
+- **Look up any player** by username — resolves UUID, skin, and cape via the Mojang API
+- **3D viewer** with 8 animations: idle, walk, run, wave, fly, swim, crouch, hit
+- **Cape rendering**, outer layer toggle, and auto-rotate in the 3D viewer
+- **Pixel editor** — pencil tool, adjustable brush size, undo/redo (50 levels), region overlay, pixel grid
+- **Steve / Alex model detection** — slim arms handled automatically
+- **Upload your own skin** PNG to view or edit it
+- **Favorites sidebar** — save players locally (persisted to localStorage)
+- **6 color themes** — cyan, green, cobalt, amber, rose, lavender
 
 ## Running locally
 
-These tools must be served from a local web server (not opened directly as
-`file://`) because the Mojang API blocks requests from `null` origins for
-security reasons.
+It's a static site with no build step, but ES modules require a local server (browsers block `file://` imports). Either:
 
+```bash
+npx serve .
+# or
+python -m http.server
+```
 
 ## API usage
 
@@ -18,6 +34,7 @@ security reasons.
 - Returns UUID, username, skin URL, cape URL, and slim (Alex) flag in a single request
 - Replaces the need to call `api.mojang.com` + `sessionserver.mojang.com` separately
 - Source and docs: https://github.com/Electroid/mojang-api
+- Note: community-hosted; may occasionally be unavailable
 
 ### Mineatar (no key required)
 - Endpoint: `https://api.mineatar.io/face/:uuid?scale=5`
@@ -31,6 +48,5 @@ security reasons.
 ### skinview3d
 - 3D Minecraft skin renderer built on Three.js
 - Loaded via CDN: `https://cdn.jsdelivr.net/npm/skinview3d@3.4.1/bundles/skinview3d.bundle.js`
-- Handles Steve/Alex models, cape rendering, and animations (Idle, Walk, Run, Wave, etc.)
+- Handles Steve/Alex models, cape rendering, and animations
 - Source: https://github.com/bs-community/skinview3d
-
