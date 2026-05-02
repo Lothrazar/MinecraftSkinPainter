@@ -62,6 +62,12 @@ export class Editor {
     this._undoStack     = [];
     this._redoStack     = [];
     this._recentColors  = JSON.parse(localStorage.getItem('mcpaint_recentColors') || '[]');
+    this._startPx       = 0;
+    this._startPy       = 0;
+    this._zoom          = 1;
+
+    this.previewCanvas = $('preview-canvas');
+    this.pctx          = this.previewCanvas.getContext('2d');
 
     this._bindEvents();
     this._renderRecentColors();
@@ -117,7 +123,7 @@ export class Editor {
   //  Tools
   setTool(t) {
     this._tool = t;
-    ['pencil', 'eraser', 'eyedropper', 'bucket'].forEach(n => {
+    ['pencil', 'eraser', 'eyedropper', 'bucket', 'rect', 'line', 'darken', 'lighten'].forEach(n => {
       $('tool-' + n).classList.toggle('active', n === t);
     });
     this.canvas.className = `tool-${t}`;
@@ -196,29 +202,98 @@ export class Editor {
 
   //  Private helpers
   _bindEvents() {
+    const isShapetool = () => this._tool === 'rect' || this._tool === 'line';
+
     this.canvas.addEventListener('mousedown', e => {
       this._drawing = true;
       if (this._tool === 'eyedropper') { this._pickColor(e); return; }
+      if (this._tool === 'bucket') { this._saveSnapshot(); this._pushRecentColor(this._brushColor); this._floodFill(e); return; }
+      if (isShapetool()) {
+        const { px, py } = this._getPixelPos(e);
+        this._startPx = px; this._startPy = py;
+        this.previewCanvas.style.display = 'block';
+        return;
+      }
       this._saveSnapshot();
-      if (this._tool === 'bucket') { this._pushRecentColor(this._brushColor); this._floodFill(e); return; }
       if (this._tool === 'pencil') this._pushRecentColor(this._brushColor);
       this._paint(e);
     });
-    this.canvas.addEventListener('mousemove',  e => this._paint(e));
-    this.canvas.addEventListener('mouseup',    () => { this._drawing = false; this._syncToViewer(); });
-    this.canvas.addEventListener('mouseleave', () => { this._drawing = false; $('coords').textContent = '—'; });
+
+    this.canvas.addEventListener('mousemove', e => {
+      if (this._drawing && isShapetool()) {
+        const { px, py } = this._getPixelPos(e);
+        $('coords').textContent = `x:${px} y:${py}`;
+        this._tool === 'rect' ? this._drawRectPreview(px, py) : this._drawLinePreview(px, py);
+        return;
+      }
+      this._paint(e);
+    });
+
+    this.canvas.addEventListener('mouseup', e => {
+      if (this._drawing && isShapetool()) {
+        const { px, py } = this._getPixelPos(e);
+        if (px !== this._startPx || py !== this._startPy) {
+          this._saveSnapshot();
+          this._commitPreview();
+        }
+        this.previewCanvas.style.display = 'none';
+        this.pctx.clearRect(0, 0, 512, 512);
+      }
+      this._drawing = false;
+      this._syncToViewer();
+    });
+
+    this.canvas.addEventListener('mouseleave', () => {
+      if (isShapetool()) {
+        this.previewCanvas.style.display = 'none';
+        this.pctx.clearRect(0, 0, 512, 512);
+      }
+      this._drawing = false;
+      $('coords').textContent = '—';
+    });
 
     this.canvas.addEventListener('touchstart', e => {
       e.preventDefault();
       this._drawing = true;
       if (this._tool === 'eyedropper') { this._pickColor(e); return; }
+      if (this._tool === 'bucket') { this._saveSnapshot(); this._pushRecentColor(this._brushColor); this._floodFill(e); return; }
+      if (isShapetool()) {
+        const { px, py } = this._getPixelPos(e);
+        this._startPx = px; this._startPy = py;
+        this.previewCanvas.style.display = 'block';
+        return;
+      }
       this._saveSnapshot();
-      if (this._tool === 'bucket') { this._pushRecentColor(this._brushColor); this._floodFill(e); return; }
       if (this._tool === 'pencil') this._pushRecentColor(this._brushColor);
       this._paint(e);
     }, { passive: false });
-    this.canvas.addEventListener('touchmove',  e => { e.preventDefault(); this._paint(e); }, { passive: false });
-    this.canvas.addEventListener('touchend',   () => { this._drawing = false; this._syncToViewer(); });
+
+    this.canvas.addEventListener('touchmove', e => {
+      e.preventDefault();
+      if (this._drawing && isShapetool()) {
+        const { px, py } = this._getPixelPos(e);
+        this._tool === 'rect' ? this._drawRectPreview(px, py) : this._drawLinePreview(px, py);
+        return;
+      }
+      this._paint(e);
+    }, { passive: false });
+
+    this.canvas.addEventListener('touchend', e => {
+      if (this._drawing && isShapetool()) {
+        const t = e.changedTouches[0];
+        const r = this.canvas.getBoundingClientRect();
+        const px = Math.floor((t.clientX - r.left) * (this.canvas.width  / r.width)  / SCALE);
+        const py = Math.floor((t.clientY - r.top)  * (this.canvas.height / r.height) / SCALE);
+        if (px !== this._startPx || py !== this._startPy) {
+          this._saveSnapshot();
+          this._commitPreview();
+        }
+        this.previewCanvas.style.display = 'none';
+        this.pctx.clearRect(0, 0, 512, 512);
+      }
+      this._drawing = false;
+      this._syncToViewer();
+    });
 
     document.addEventListener('keydown', e => {
       if (!e.ctrlKey && !e.metaKey) return;
@@ -257,7 +332,7 @@ export class Editor {
     const { px, py } = this._getPixelPos(e);
     $('coords').textContent = `x:${px} y:${py}`;
     if (!this._drawing) return;
-    if (this._tool === 'eyedropper') return;
+    if (['eyedropper', 'bucket', 'rect', 'line'].includes(this._tool)) return;
     if (py >= state.skinHeight) return;
 
     const x    = px * SCALE;
@@ -266,6 +341,22 @@ export class Editor {
 
     if (this._tool === 'eraser') {
       this.ctx.clearRect(x, y, size, size);
+    } else if (this._tool === 'darken' || this._tool === 'lighten') {
+      const imageData = this.ctx.getImageData(x, y, size, size);
+      const d = imageData.data;
+      for (let i = 0; i < d.length; i += 4) {
+        if (d[i + 3] === 0) continue;
+        if (this._tool === 'darken') {
+          d[i]     = Math.round(d[i]     * 0.95);
+          d[i + 1] = Math.round(d[i + 1] * 0.95);
+          d[i + 2] = Math.round(d[i + 2] * 0.95);
+        } else {
+          d[i]     = 255 - Math.round((255 - d[i])     * 0.95);
+          d[i + 1] = 255 - Math.round((255 - d[i + 1]) * 0.95);
+          d[i + 2] = 255 - Math.round((255 - d[i + 2]) * 0.95);
+        }
+      }
+      this.ctx.putImageData(imageData, x, y);
     } else {
       this.ctx.fillStyle = this._brushColor;
       this.ctx.fillRect(x, y, size, size);
@@ -346,6 +437,66 @@ export class Editor {
     }
 
     this.ctx.putImageData(imageData, 0, 0);
+  }
+
+  _drawRectPreview(px, py) {
+    this.pctx.clearRect(0, 0, 512, 512);
+    const x = Math.min(this._startPx, px) * SCALE;
+    const y = Math.min(this._startPy, py) * SCALE;
+    const w = (Math.abs(px - this._startPx) + 1) * SCALE;
+    const h = (Math.abs(py - this._startPy) + 1) * SCALE;
+    this.pctx.fillStyle = this._brushColor;
+    this.pctx.fillRect(x, y, w, h);
+  }
+
+  _drawLinePreview(px, py) {
+    this.pctx.clearRect(0, 0, 512, 512);
+    this.pctx.fillStyle = this._brushColor;
+    for (const [lx, ly] of this._bresenham(this._startPx, this._startPy, px, py)) {
+      this.pctx.fillRect(lx * SCALE, ly * SCALE, SCALE, SCALE);
+    }
+  }
+
+  _commitPreview() {
+    this.ctx.drawImage(this.previewCanvas, 0, 0);
+  }
+
+  _bresenham(x0, y0, x1, y1) {
+    const pts = [];
+    let dx = Math.abs(x1 - x0), sx = x0 < x1 ? 1 : -1;
+    let dy = -Math.abs(y1 - y0), sy = y0 < y1 ? 1 : -1;
+    let err = dx + dy;
+    while (true) {
+      pts.push([x0, y0]);
+      if (x0 === x1 && y0 === y1) break;
+      const e2 = 2 * err;
+      if (e2 >= dy) { err += dy; x0 += sx; }
+      if (e2 <= dx) { err += dx; y0 += sy; }
+    }
+    return pts;
+  }
+
+  zoom(delta) {
+    const levels = [1, 2, 4];
+    const idx = Math.max(0, Math.min(levels.length - 1, levels.indexOf(this._zoom) + delta));
+    this._zoom = levels[idx];
+    const px = 512 * this._zoom + 'px';
+    [this.canvas, this.gridCanvas, this.regionCanvas, this.previewCanvas].forEach(c => {
+      c.style.width = c.style.height = px;
+    });
+    $('zoom-level').textContent = this._zoom + '×';
+    const wrap = $('canvas-wrap');
+    if (this._zoom > 1) {
+      wrap.style.justifyContent = 'flex-start';
+      requestAnimationFrame(() => {
+        const cc = wrap.querySelector('.canvas-container');
+        wrap.scrollLeft = Math.max(0, (cc.offsetWidth - wrap.clientWidth) / 2);
+      });
+    } else {
+      wrap.style.justifyContent = '';
+      wrap.scrollLeft = 0;
+      wrap.scrollTop  = 0;
+    }
   }
 
   _drawGrid() {

@@ -131,6 +131,11 @@
         <button class="tool-btn" id="tool-eraser">◻ Eraser</button>
         <button class="tool-btn" id="tool-eyedropper">✦ Pick</button>
         <button class="tool-btn" id="tool-bucket">⬛ Fill</button>
+        <button class="tool-btn" id="tool-rect">▭ Rect</button>
+        <button class="tool-btn" id="tool-line">╱ Line</button>
+        <div class="toolbar-sep"></div>
+        <button class="tool-btn" id="tool-darken">◐ Burn</button>
+        <button class="tool-btn" id="tool-lighten">◑ Dodge</button>
         <div class="toolbar-sep"></div>
         <div class="color-wrap">
           <input type="color" id="color-input" value="#ffffff" />
@@ -146,13 +151,20 @@
         <div class="toolbar-sep"></div>
         <button class="tool-btn" id="grid-toggle">⊞ Grid</button>
         <button class="tool-btn" id="region-toggle">⬚ Regions</button>
+        <div class="toolbar-sep"></div>
+        <div class="zoom-wrap">
+          <button class="tool-btn" id="zoom-out">−</button>
+          <span id="zoom-level" class="zoom-level">1×</span>
+          <button class="tool-btn" id="zoom-in">+</button>
+        </div>
       </div>
 
-      <div class="canvas-wrap">
+      <div class="canvas-wrap" id="canvas-wrap">
         <div class="canvas-container">
           <canvas id="skin-canvas" width="512" height="512"></canvas>
           <canvas id="grid-canvas" width="512" height="512" style="display:none"></canvas>
           <canvas id="region-canvas" width="512" height="512" style="display:none"></canvas>
+          <canvas id="preview-canvas" width="512" height="512" style="display:none"></canvas>
         </div>
       </div>
 
