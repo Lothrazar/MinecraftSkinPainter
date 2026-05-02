@@ -123,8 +123,9 @@
   touch-action: none;
 }
 
-#skin-canvas.tool-eraser { cursor: cell; }
+#skin-canvas.tool-eraser     { cursor: cell; }
 #skin-canvas.tool-eyedropper { cursor: crosshair; }
+#skin-canvas.tool-bucket     { cursor: crosshair; }
 
 /* overlay canvases */
 #grid-canvas,
@@ -139,6 +140,28 @@
 .canvas-container {
   position: relative;
   display: inline-block;
+}
+
+.recent-colors {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.recent-color-swatch {
+  width: 18px;
+  height: 18px;
+  border-radius: 3px;
+  border: 1px solid var(--border);
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+  transition: transform 0.1s;
+}
+
+.recent-color-swatch:hover {
+  transform: scale(1.25);
+  border-color: var(--text);
 }
 
 .editor-footer {

@@ -61,8 +61,10 @@ export class Editor {
     this._regionVisible = false;
     this._undoStack     = [];
     this._redoStack     = [];
+    this._recentColors  = JSON.parse(localStorage.getItem('mcpaint_recentColors') || '[]');
 
     this._bindEvents();
+    this._renderRecentColors();
   }
 
   //  Open / close
@@ -115,14 +117,19 @@ export class Editor {
   //  Tools
   setTool(t) {
     this._tool = t;
-    ['pencil', 'eraser', 'eyedropper'].forEach(n => {
+    ['pencil', 'eraser', 'eyedropper', 'bucket'].forEach(n => {
       $('tool-' + n).classList.toggle('active', n === t);
     });
     this.canvas.className = t !== 'pencil' ? `tool-${t}` : '';
   }
 
-  updateColor() {
-    this._brushColor = $('color-input').value;
+  updateColor(hex) {
+    if (hex !== undefined) {
+      this._brushColor = hex;
+      $('color-input').value = hex;
+    } else {
+      this._brushColor = $('color-input').value;
+    }
     $('color-preview').style.background = this._brushColor;
   }
 
@@ -193,6 +200,8 @@ export class Editor {
       this._drawing = true;
       if (this._tool === 'eyedropper') { this._pickColor(e); return; }
       this._saveSnapshot();
+      if (this._tool === 'bucket') { this._pushRecentColor(this._brushColor); this._floodFill(e); return; }
+      if (this._tool === 'pencil') this._pushRecentColor(this._brushColor);
       this._paint(e);
     });
     this.canvas.addEventListener('mousemove',  e => this._paint(e));
@@ -204,6 +213,8 @@ export class Editor {
       this._drawing = true;
       if (this._tool === 'eyedropper') { this._pickColor(e); return; }
       this._saveSnapshot();
+      if (this._tool === 'bucket') { this._pushRecentColor(this._brushColor); this._floodFill(e); return; }
+      if (this._tool === 'pencil') this._pushRecentColor(this._brushColor);
       this._paint(e);
     }, { passive: false });
     this.canvas.addEventListener('touchmove',  e => { e.preventDefault(); this._paint(e); }, { passive: false });
@@ -270,7 +281,71 @@ export class Editor {
     this._brushColor = hex;
     $('color-input').value = hex;
     $('color-preview').style.background = hex;
+    this._pushRecentColor(hex);
     this.setTool('pencil');
+  }
+
+  _pushRecentColor(hex) {
+    this._recentColors = [hex, ...this._recentColors.filter(c => c !== hex)].slice(0, 8);
+    localStorage.setItem('mcpaint_recentColors', JSON.stringify(this._recentColors));
+    this._renderRecentColors();
+  }
+
+  _renderRecentColors() {
+    const wrap = $('recent-colors');
+    wrap.innerHTML = '';
+    for (const hex of this._recentColors) {
+      const btn = document.createElement('button');
+      btn.className = 'recent-color-swatch';
+      btn.style.background = hex;
+      btn.title = hex;
+      btn.addEventListener('click', () => this.updateColor(hex));
+      wrap.appendChild(btn);
+    }
+  }
+
+  _floodFill(e) {
+    const { px, py } = this._getPixelPos(e);
+    if (py >= state.skinHeight) return;
+
+    const W = 512;
+    const imageData = this.ctx.getImageData(0, 0, W, 512);
+    const data = imageData.data;
+
+    const seedBase = (py * SCALE * W + px * SCALE) * 4;
+    const sR = data[seedBase], sG = data[seedBase + 1], sB = data[seedBase + 2], sA = data[seedBase + 3];
+
+    const r = parseInt(this._brushColor.slice(1, 3), 16);
+    const g = parseInt(this._brushColor.slice(3, 5), 16);
+    const b = parseInt(this._brushColor.slice(5, 7), 16);
+
+    if (sR === r && sG === g && sB === b && sA === 255) return;
+
+    const skinH = state.skinHeight;
+    const visited = new Uint8Array(64 * skinH);
+    const queue = [[px, py]];
+    visited[py * 64 + px] = 1;
+
+    while (queue.length) {
+      const [cx, cy] = queue.shift();
+      for (let dy = 0; dy < SCALE; dy++) {
+        for (let dx = 0; dx < SCALE; dx++) {
+          const idx = ((cy * SCALE + dy) * W + (cx * SCALE + dx)) * 4;
+          data[idx] = r; data[idx + 1] = g; data[idx + 2] = b; data[idx + 3] = 255;
+        }
+      }
+      for (const [nx, ny] of [[cx - 1, cy], [cx + 1, cy], [cx, cy - 1], [cx, cy + 1]]) {
+        if (nx < 0 || nx >= 64 || ny < 0 || ny >= skinH) continue;
+        if (visited[ny * 64 + nx]) continue;
+        visited[ny * 64 + nx] = 1;
+        const nBase = (ny * SCALE * W + nx * SCALE) * 4;
+        if (data[nBase] === sR && data[nBase + 1] === sG && data[nBase + 2] === sB && data[nBase + 3] === sA) {
+          queue.push([nx, ny]);
+        }
+      }
+    }
+
+    this.ctx.putImageData(imageData, 0, 0);
   }
 
   _drawGrid() {

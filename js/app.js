@@ -69,6 +69,7 @@ export class App {
     $('tool-pencil').addEventListener('click',      () => this.editor.setTool('pencil'));
     $('tool-eraser').addEventListener('click',      () => this.editor.setTool('eraser'));
     $('tool-eyedropper').addEventListener('click',  () => this.editor.setTool('eyedropper'));
+    $('tool-bucket').addEventListener('click',      () => this.editor.setTool('bucket'));
     $('color-input').addEventListener('input',      () => this.editor.updateColor());
     $('brush-size').addEventListener('input',       () => this.editor.updateBrushSize());
     $('grid-toggle').addEventListener('click',      () => this.editor.toggleGrid());
