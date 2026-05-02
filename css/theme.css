@@ -1,0 +1,28 @@
+/*  Theme picker  */
+.theme-picker {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.theme-label {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.7rem;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+  margin-right: 3px;
+}
+
+.theme-dot {
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  padding: 0;
+  cursor: pointer;
+  transition: transform 0.15s, border-color 0.15s;
+  outline-offset: 2px;
+}
+
+.theme-dot:hover  { transform: scale(1.25); }
+.theme-dot.active { border-color: var(--text); }

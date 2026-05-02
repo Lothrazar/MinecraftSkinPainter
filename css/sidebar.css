@@ -1,0 +1,159 @@
+/*  Favorites sidebar  */
+#fav-sidebar {
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 220px;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  z-index: 200;
+  transform: translateX(-100%);
+  transition: transform 0.2s ease;
+}
+
+body.sidebar-open #fav-sidebar {
+  transform: translateX(0);
+}
+
+/* Push layout on wide screens; overlay on narrow */
+@media (min-width: 700px) {
+  body.sidebar-open header,
+  body.sidebar-open main,
+  body.sidebar-open footer {
+    margin-left: 220px;
+  }
+}
+
+header,
+main,
+footer {
+  transition: margin-left 0.2s ease;
+}
+
+.fav-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1rem 0.75rem;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+.fav-header:hover { background: rgba(var(--accent-rgb),0.05); }
+
+.fav-title {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: 0.04em;
+}
+
+.fav-close {
+  color: var(--muted);
+  font-size: 0.85rem;
+  line-height: 1;
+  transition: color 0.1s;
+}
+.fav-header:hover .fav-close { color: var(--text); }
+
+.fav-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0.4rem 0;
+}
+
+.fav-empty {
+  padding: 1.5rem 1rem;
+  font-size: 0.68rem;
+  color: var(--muted);
+  font-family: 'Space Mono', monospace;
+  line-height: 1.7;
+  text-align: center;
+}
+
+.fav-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0.45rem 0.75rem;
+  cursor: pointer;
+  transition: background 0.1s;
+  border-top: 2px solid transparent;
+}
+.fav-item:hover { background: rgba(var(--accent-rgb),0.06); }
+.fav-item.fav-dragging  { opacity: 0.35; }
+.fav-item.fav-drag-over { border-top-color: var(--accent); }
+
+.fav-drag-handle {
+  color: var(--border);
+  font-size: 0.75rem;
+  line-height: 1;
+  cursor: grab;
+  flex-shrink: 0;
+  transition: color 0.1s;
+  user-select: none;
+}
+.fav-item:hover .fav-drag-handle { color: var(--muted); }
+
+.fav-avatar {
+  width: 28px;
+  height: 28px;
+  image-rendering: pixelated;
+  border-radius: 3px;
+  flex-shrink: 0;
+  background: var(--bg);
+}
+
+.fav-name {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.68rem;
+  color: var(--text);
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fav-remove {
+  background: none;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 0.65rem;
+  padding: 2px 5px;
+  border-radius: 3px;
+  opacity: 0;
+  transition: opacity 0.1s, color 0.1s;
+  flex-shrink: 0;
+}
+.fav-item:hover .fav-remove { opacity: 1; }
+.fav-remove:hover { color: var(--error); }
+
+/* Fixed top-left open button — hidden when sidebar is open */
+.fav-open-btn {
+  position: fixed;
+  top: 1rem;
+  left: 1rem;
+  z-index: 201;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--muted);
+  font-size: 1rem;
+  padding: 5px 9px;
+  cursor: pointer;
+  line-height: 1;
+  transition: color 0.15s, border-color 0.15s, opacity 0.15s;
+}
+.fav-open-btn:hover { color: var(--accent); border-color: var(--accent); }
+.fav-open-btn.has-favs { color: var(--accent); }
+body.sidebar-open .fav-open-btn { opacity: 0; pointer-events: none; }
+
+/* Star button on result card */
+#fav-btn.active { color: var(--accent); border-color: var(--accent); }

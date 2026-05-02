@@ -1,0 +1,35 @@
+:root {
+  --bg:          #090e10;
+  --surface:     #101a1e;
+  --border:      #162028;
+  --accent:      #22d3ee;
+  --accent-rgb:  34, 211, 238;   /* used for rgba() opacity variants */
+  --accent-text: #021a1e;        /* dark text on accent-bg buttons   */
+  --text:        #d8f0f5;
+  --muted:       #456070;
+  --error:       #ff5c5c;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(var(--accent-rgb),0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(var(--accent-rgb),0.03) 1px, transparent 1px);
+  background-size: 32px 32px;
+  pointer-events: none;
+  z-index: 0;
+}
