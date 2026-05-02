@@ -120,7 +120,7 @@ export class Editor {
     ['pencil', 'eraser', 'eyedropper', 'bucket'].forEach(n => {
       $('tool-' + n).classList.toggle('active', n === t);
     });
-    this.canvas.className = t !== 'pencil' ? `tool-${t}` : '';
+    this.canvas.className = `tool-${t}`;
   }
 
   updateColor(hex) {
