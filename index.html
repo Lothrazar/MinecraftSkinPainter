@@ -22,6 +22,7 @@
   <link rel="stylesheet" href="css/editor.css" />
   <link rel="stylesheet" href="css/viewer.css" />
   <link rel="stylesheet" href="css/theme.css" />
+  <link rel="stylesheet" href="css/modal.css" />
 </head>
 <body>
   <aside id="fav-sidebar">
@@ -46,10 +47,20 @@
     </div>
     <div class="default-skins-wrap">
       <span class="default-skins-label">or load default:</span>
-      <button class="btn" id="steve-btn">Steve</button>
-      <button class="btn" id="alex-btn">Alex</button>
+      <button class="btn" id="defaults-btn">Defaults</button>
       <button class="btn" id="upload-btn" style="display:none">↑ Upload</button>
       <input type="file" id="skin-upload-input" accept=".png" style="display:none" />
+    </div>
+
+    <div class="modal-overlay" id="defaults-modal">
+      <div class="modal">
+        <button class="modal-close" id="defaults-modal-close">✕</button>
+        <div class="modal-title">Default Skins</div>
+        <div class="modal-section-label">Classic</div>
+        <div class="modal-skin-row" id="modal-row-classic"></div>
+        <div class="modal-section-label">Slim</div>
+        <div class="modal-skin-row" id="modal-row-slim"></div>
+      </div>
     </div>
 
     <div class="error" id="error"></div>

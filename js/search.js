@@ -102,12 +102,11 @@ export class Search {
     }
   }
 
-  async loadDefaultSkin(key) {
-    const skin = DEFAULT_SKINS[key];
+  async loadDefaultSkin(skin) {
     this.setError('');
     try {
       state.currentSkinUrl    = skin.dataUrl;
-      state.currentPlayerName = key;
+      state.currentPlayerName = skin.name;
       this.setModelState(skin.slim);
       $('result').style.display = 'none';
       await this._openEditor();
