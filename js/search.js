@@ -72,6 +72,7 @@ export class Search {
       $('skin-img').src                = skinUrl;
       $('dl-skin').href                = skinUrl;
       $('dl-skin').download            = `${displayName}_skin.png`;
+      $('dl-skin').target              = '_blank';
 
       if (capeUrl) {
         $('cape-img').src                = capeUrl;
@@ -79,6 +80,7 @@ export class Search {
         $('no-cape-block').style.display = 'none';
         $('dl-cape').href                = capeUrl;
         $('dl-cape').download            = `${displayName}_cape.png`;
+        $('dl-cape').target              = '_blank';
         $('dl-cape').style.display       = 'inline-block';
       } else {
         $('cape-block').style.display    = 'none';

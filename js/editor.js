@@ -181,6 +181,7 @@ export class Editor {
       const a = document.createElement('a');
       a.href     = URL.createObjectURL(blob);
       a.download = `${state.currentPlayerName || 'skin'}_edited.png`;
+      a.target   = '_blank';
       a.click();
       URL.revokeObjectURL(a.href);
     }, 'image/png');

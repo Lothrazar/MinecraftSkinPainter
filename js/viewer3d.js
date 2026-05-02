@@ -7,7 +7,7 @@ const ANIM_MAP = {
   run:    () => new skinview3d.RunningAnimation(),
   wave:   () => new skinview3d.WaveAnimation(),
   fly:    () => new skinview3d.FlyingAnimation(),
-  swim:   () => new skinview3d.SwimAnimation(),
+  swim:   typeof skinview3d.SwimAnimation === 'function' ? () => new skinview3d.SwimAnimation() : null,
   crouch: () => new skinview3d.CrouchAnimation(),
   hit:    () => new skinview3d.HitAnimation(),
   none:   null,
