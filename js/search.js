@@ -62,15 +62,15 @@ export class Search {
 
       if (!skinUrl) throw new Error('No skin URL found.');
 
-      state.currentSkinUrl    = skinUrl;
+      state.currentSkinUrl    = skinUrl.replace(/^http:\/\//i, 'https://');
       state.currentPlayerName = displayName;
       state.currentUuid       = uuid;
 
       $('avatar-img').src              = `https://api.mineatar.io/face/${uuid}?scale=5`;
       $('result-name').textContent     = displayName;
       $('result-uuid').textContent     = uuid.replace(/(.{8})(.{4})(.{4})(.{4})(.{12})/, '$1-$2-$3-$4-$5');
-      $('skin-img').src                = skinUrl;
-      $('dl-skin').href                = skinUrl;
+      $('skin-img').src                = state.currentSkinUrl;
+      $('dl-skin').href                = state.currentSkinUrl;
       $('dl-skin').download            = `${displayName}_skin.png`;
       $('dl-skin').target              = '_blank';
 
