@@ -1,10 +1,10 @@
-import { state }         from './state.js';
-import { applyTheme }    from './themes.js';
-import { Search }        from './search.js';
-import { Favorites }     from './favorites.js';
-import { Editor }        from './editor.js';
-import { Viewer3D }      from './viewer3d.js';
-import { DEFAULT_SKINS } from './defaults.js';
+import { state }              from './state.js';
+import { applyTheme }         from './themes.js';
+import { Search }             from './search.js';
+import { Favorites }          from './favorites.js';
+import { Editor }             from './editor.js';
+import { Viewer3D }           from './viewer3d.js';
+import { DefaultSkinsModal }  from './modal.js';
 
 export class App {
   constructor() {
@@ -30,6 +30,10 @@ export class App {
       onFavsUpdate: (uuid, name) => { this.favs.updateName(uuid, name); this.favs.updateBtn(); this.favs.render(); },
     });
 
+    this.defaultsModal = new DefaultSkinsModal({
+      onSelect: skin => this.search.loadDefaultSkin(skin),
+    });
+
     this._wireEvents();
     this._init();
   }
@@ -48,11 +52,6 @@ export class App {
     // Search
     $('search-btn').addEventListener('click',  () => this.search.lookup());
     $('username').addEventListener('keydown',  e => { if (e.key === 'Enter') this.search.lookup(); });
-
-    // Default skins modal
-    $('defaults-btn').addEventListener('click', () => this._openDefaultsModal());
-    $('defaults-modal-close').addEventListener('click', () => this._closeDefaultsModal());
-    $('defaults-modal').addEventListener('click', e => { if (e.target === $('defaults-modal')) this._closeDefaultsModal(); });
 
     // Upload
     $('upload-btn').addEventListener('click',         () => $('skin-upload-input').click());
@@ -98,53 +97,6 @@ export class App {
         this.editor.redrawGridIfVisible();
       });
     });
-  }
-
-  _openDefaultsModal() {
-    this._buildDefaultsGrid();
-    $('defaults-modal').classList.add('open');
-  }
-
-  _closeDefaultsModal() {
-    $('defaults-modal').classList.remove('open');
-  }
-
-  _buildDefaultsGrid() {
-    for (const category of ['classic', 'slim']) {
-      const row = $(`modal-row-${category}`);
-      if (row.childElementCount > 0) continue;
-      for (const skin of Object.values(DEFAULT_SKINS[category])) {
-        const thumb = this._makeSkinThumb(skin);
-        thumb.addEventListener('click', () => {
-          this.search.loadDefaultSkin(skin);
-          this._closeDefaultsModal();
-        });
-        row.appendChild(thumb);
-      }
-    }
-  }
-
-  _makeSkinThumb(skin) {
-    const wrap = document.createElement('div');
-    wrap.className = 'skin-thumb';
-
-    const canvas = document.createElement('canvas');
-    canvas.width  = 8;
-    canvas.height = 8;
-    const ctx = canvas.getContext('2d');
-    ctx.imageSmoothingEnabled = false;
-
-    const img = new Image();
-    img.src = skin.dataUrl;
-    img.onload = () => ctx.drawImage(img, 8, 8, 8, 8, 0, 0, 8, 8);
-
-    const label = document.createElement('span');
-    label.className   = 'skin-thumb-name';
-    label.textContent = skin.name;
-
-    wrap.appendChild(canvas);
-    wrap.appendChild(label);
-    return wrap;
   }
 
   _init() {
