@@ -72,8 +72,8 @@ export class Viewer3D {
       if (this._capeBlobUrl) this.toggle3DBack('cape');
 
       const vb = $('viewer-3d-model-badge');
-      vb.textContent = state.skinIsSlim ? 'Alex' : 'Steve';
-      vb.className   = `model-badge ${state.skinIsSlim ? 'alex' : 'steve'}`;
+      vb.textContent = state.skinIsSlim ? 'Slim' : 'Classic';
+      vb.className   = `model-badge ${state.skinIsSlim ? 'slim' : 'classic'}`;
 
       $('viewer-3d').style.display = 'block';
       this._updateLayout();

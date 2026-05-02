@@ -31,8 +31,8 @@ export class Search {
 
   setModelState(slim) {
     state.skinIsSlim = slim;
-    const label = slim ? 'Alex' : 'Steve';
-    const cls   = slim ? 'alex' : 'steve';
+    const label = slim ? 'Slim' : 'Classic';
+    const cls   = slim ? 'slim' : 'classic';
     ['model-badge', 'editor-model-badge'].forEach(id => {
       const el = $(id);
       el.textContent = label;

@@ -48,8 +48,8 @@
   opacity: 0.75;
 }
 
-.model-badge.steve { color: #7ec8e3; }
-.model-badge.alex  { color: #c8b7e3; }
+.model-badge.classic { color: #7ec8e3; }
+.model-badge.slim    { color: #c8b7e3; }
 
 .format-badge {
   font-family: 'Space Mono', monospace;
