@@ -7,7 +7,7 @@ const ANIM_MAP = {
   run:    () => new skinview3d.RunningAnimation(),
   wave:   () => new skinview3d.WaveAnimation(),
   fly:    () => new skinview3d.FlyingAnimation(),
-  swim:   typeof skinview3d.SwimAnimation === 'function' ? () => new skinview3d.SwimAnimation() : null,
+  swim:   () => new skinview3d.SwimAnimation(), // fixed in v3.4.2 https://github.com/bs-community/skinview3d/issues/215
   crouch: () => new skinview3d.CrouchAnimation(),
   hit:    () => new skinview3d.HitAnimation(),
   none:   null,

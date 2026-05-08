@@ -47,6 +47,6 @@ python -m http.server
 
 ### skinview3d
 - 3D Minecraft skin renderer built on Three.js
-- Loaded via CDN: `https://cdn.jsdelivr.net/npm/skinview3d@3.4.1/bundles/skinview3d.bundle.js`
+- Loaded via CDN: `https://cdn.jsdelivr.net/npm/skinview3d@3.4.2/bundles/skinview3d.bundle.js`
 - Handles Steve/Alex models, cape rendering, and animations
 - Source: https://github.com/bs-community/skinview3d
