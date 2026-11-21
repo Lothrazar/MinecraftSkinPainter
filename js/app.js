@@ -80,6 +80,7 @@ export class App {
     $('brush-size').addEventListener('input',       () => this.editor.updateBrushSize());
     $('grid-toggle').addEventListener('click',      () => this.editor.toggleGrid());
     $('region-toggle').addEventListener('click',    () => this.editor.toggleRegions());
+    $('mirror-toggle').addEventListener('click',    () => this.editor.toggleMirror());
     $('dl-edited-btn').addEventListener('click',    () => this.editor.download());
 
     // 3D viewer — animations

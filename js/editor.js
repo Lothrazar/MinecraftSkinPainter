@@ -1,38 +1,9 @@
 import { state } from './state.js';
+import { buildBoxFaces, SKIN_REGIONS } from './skin-data.js';
+import { getMirrorPixel } from './mirror.js';
 
 const SCALE   = 8;   // 64 skin px × 8 = 512 canvas px
 const MAX_UNDO = 50;
-
-// Returns the 6 UV face sub-regions for a Minecraft box.
-// (u,v) = UV offset in skin px; W=width, H=height, D=depth of the 3D box.
-// Layout: [top W×D][bot W×D] in cap row, then [R D×H][frt W×H][L D×H][bk W×H] in side row.
-function buildBoxFaces(u, v, W, H, D) {
-  return [
-    { x: u+D,     y: v,   w: W, h: D, label: 'top' },
-    { x: u+D+W,   y: v,   w: W, h: D, label: 'bot' },
-    { x: u,       y: v+D, w: D, h: H, label: 'R'   },
-    { x: u+D,     y: v+D, w: W, h: H, label: 'frt' },
-    { x: u+D+W,   y: v+D, w: D, h: H, label: 'L'   },
-    { x: u+D+W+D, y: v+D, w: W, h: H, label: 'bk'  },
-  ];
-}
-
-// Regions in 64px skin coords. arm:true → arm face width from skinIsSlim (3 Alex / 4 Steve).
-// newFormat:true → only shown for 64×64 skins.
-const SKIN_REGIONS = [
-  { x:0,  y:0,  w:32, h:16, label:'Head',    stroke:'rgba(79,195,247,0.7)',  fill:'rgba(79,195,247,0.07)',  box:{u:0,  v:0,  W:8, H:8,  D:8} },
-  { x:32, y:0,  w:32, h:16, label:'Hat',     stroke:'rgba(79,195,247,0.4)',  fill:'rgba(79,195,247,0.04)',  box:{u:32, v:0,  W:8, H:8,  D:8} },
-  { x:0,  y:16, w:16, h:16, label:'R.Leg',   stroke:'rgba(239,83,80,0.7)',   fill:'rgba(239,83,80,0.07)',   box:{u:0,  v:16, W:4, H:12, D:4} },
-  { x:16, y:16, w:24, h:16, label:'Body',    stroke:'rgba(102,187,106,0.7)', fill:'rgba(102,187,106,0.07)', box:{u:16, v:16, W:8, H:12, D:4} },
-  { x:40, y:16, w:16, h:16, label:'R.Arm',   stroke:'rgba(255,167,38,0.7)',  fill:'rgba(255,167,38,0.07)',  box:{u:40, v:16,      H:12, D:4}, arm:true },
-  { x:0,  y:32, w:16, h:16, label:'R.Leg 2', stroke:'rgba(239,83,80,0.4)',   fill:'rgba(239,83,80,0.04)',   box:{u:0,  v:32, W:4, H:12, D:4}, newFormat:true },
-  { x:16, y:32, w:24, h:16, label:'Body 2',  stroke:'rgba(102,187,106,0.4)', fill:'rgba(102,187,106,0.04)', box:{u:16, v:32, W:8, H:12, D:4}, newFormat:true },
-  { x:40, y:32, w:16, h:16, label:'R.Arm 2', stroke:'rgba(255,167,38,0.4)',  fill:'rgba(255,167,38,0.04)',  box:{u:40, v:32,      H:12, D:4}, arm:true, newFormat:true },
-  { x:0,  y:48, w:16, h:16, label:'L.Leg 2', stroke:'rgba(239,83,80,0.4)',   fill:'rgba(239,83,80,0.04)',   box:{u:0,  v:48, W:4, H:12, D:4}, newFormat:true },
-  { x:16, y:48, w:16, h:16, label:'L.Leg',   stroke:'rgba(239,83,80,0.7)',   fill:'rgba(239,83,80,0.07)',   box:{u:16, v:48, W:4, H:12, D:4}, newFormat:true },
-  { x:32, y:48, w:16, h:16, label:'L.Arm',   stroke:'rgba(255,167,38,0.7)',  fill:'rgba(255,167,38,0.07)',  box:{u:32, v:48,      H:12, D:4}, arm:true, newFormat:true },
-  { x:48, y:48, w:16, h:16, label:'L.Arm 2', stroke:'rgba(255,167,38,0.4)',  fill:'rgba(255,167,38,0.04)',  box:{u:48, v:48,      H:12, D:4}, arm:true, newFormat:true },
-];
 
 export class Editor {
   // Callbacks injected from main.js:
@@ -59,6 +30,7 @@ export class Editor {
     this._brushSize     = 1;
     this._gridVisible   = false;
     this._regionVisible = false;
+    this._mirrorMode    = localStorage.getItem('mcpaint_mirrorMode') === '1';
     this._undoStack     = [];
     this._redoStack     = [];
     this._recentColors  = JSON.parse(localStorage.getItem('mcpaint_recentColors') || '[]');
@@ -105,6 +77,7 @@ export class Editor {
 
       $('editor').style.display = 'block';
       $('editor').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      $('mirror-toggle').classList.toggle('active', this._mirrorMode);
       this._open3DViewer();
     } catch (e) {
       this._setError('Could not load skin into editor: ' + e.message);
@@ -162,6 +135,13 @@ export class Editor {
     this.regionCanvas.style.display = this._regionVisible ? 'block' : 'none';
     $('region-toggle').classList.toggle('active', this._regionVisible);
     if (this._regionVisible) this._drawRegions();
+  }
+
+  //  Mirror
+  toggleMirror() {
+    this._mirrorMode = !this._mirrorMode;
+    localStorage.setItem('mcpaint_mirrorMode', this._mirrorMode ? '1' : '0');
+    $('mirror-toggle').classList.toggle('active', this._mirrorMode);
   }
 
   //  Undo / redo
@@ -361,6 +341,42 @@ export class Editor {
       this.ctx.fillStyle = this._brushColor;
       this.ctx.fillRect(x, y, size, size);
     }
+
+    if (this._mirrorMode) {
+      for (let dy = 0; dy < this._brushSize; dy++) {
+        for (let dx = 0; dx < this._brushSize; dx++) {
+          const m = getMirrorPixel(px + dx, py + dy);
+          if (m) this._paintAt(m.px, m.py);
+        }
+      }
+    }
+  }
+
+  _paintAt(px, py) {
+    const x = px * SCALE;
+    const y = py * SCALE;
+    if (this._tool === 'eraser') {
+      this.ctx.clearRect(x, y, SCALE, SCALE);
+    } else if (this._tool === 'darken' || this._tool === 'lighten') {
+      const imageData = this.ctx.getImageData(x, y, SCALE, SCALE);
+      const d = imageData.data;
+      for (let i = 0; i < d.length; i += 4) {
+        if (d[i + 3] === 0) continue;
+        if (this._tool === 'darken') {
+          d[i]     = Math.round(d[i]     * 0.95);
+          d[i + 1] = Math.round(d[i + 1] * 0.95);
+          d[i + 2] = Math.round(d[i + 2] * 0.95);
+        } else {
+          d[i]     = 255 - Math.round((255 - d[i])     * 0.95);
+          d[i + 1] = 255 - Math.round((255 - d[i + 1]) * 0.95);
+          d[i + 2] = 255 - Math.round((255 - d[i + 2]) * 0.95);
+        }
+      }
+      this.ctx.putImageData(imageData, x, y);
+    } else {
+      this.ctx.fillStyle = this._brushColor;
+      this.ctx.fillRect(x, y, SCALE, SCALE);
+    }
   }
 
   _pickColor(e) {
@@ -398,7 +414,14 @@ export class Editor {
   _floodFill(e) {
     const { px, py } = this._getPixelPos(e);
     if (py >= state.skinHeight) return;
+    this._floodFillAt(px, py);
+    if (this._mirrorMode) {
+      const m = getMirrorPixel(px, py);
+      if (m) this._floodFillAt(m.px, m.py);
+    }
+  }
 
+  _floodFillAt(px, py) {
     const W = 512;
     const imageData = this.ctx.getImageData(0, 0, W, 512);
     const data = imageData.data;
@@ -441,12 +464,20 @@ export class Editor {
 
   _drawRectPreview(px, py) {
     this.pctx.clearRect(0, 0, 512, 512);
-    const x = Math.min(this._startPx, px) * SCALE;
-    const y = Math.min(this._startPy, py) * SCALE;
-    const w = (Math.abs(px - this._startPx) + 1) * SCALE;
-    const h = (Math.abs(py - this._startPy) + 1) * SCALE;
     this.pctx.fillStyle = this._brushColor;
-    this.pctx.fillRect(x, y, w, h);
+    const x0 = Math.min(this._startPx, px);
+    const y0 = Math.min(this._startPy, py);
+    const x1 = Math.max(this._startPx, px);
+    const y1 = Math.max(this._startPy, py);
+    this.pctx.fillRect(x0 * SCALE, y0 * SCALE, (x1 - x0 + 1) * SCALE, (y1 - y0 + 1) * SCALE);
+    if (this._mirrorMode) {
+      for (let bpy = y0; bpy <= y1; bpy++) {
+        for (let bpx = x0; bpx <= x1; bpx++) {
+          const m = getMirrorPixel(bpx, bpy);
+          if (m) this.pctx.fillRect(m.px * SCALE, m.py * SCALE, SCALE, SCALE);
+        }
+      }
+    }
   }
 
   _drawLinePreview(px, py) {
@@ -454,6 +485,10 @@ export class Editor {
     this.pctx.fillStyle = this._brushColor;
     for (const [lx, ly] of this._bresenham(this._startPx, this._startPy, px, py)) {
       this.pctx.fillRect(lx * SCALE, ly * SCALE, SCALE, SCALE);
+      if (this._mirrorMode) {
+        const m = getMirrorPixel(lx, ly);
+        if (m) this.pctx.fillRect(m.px * SCALE, m.py * SCALE, SCALE, SCALE);
+      }
     }
   }
 

@@ -10,7 +10,8 @@ No backend required — runs entirely in the browser.
 - **Look up any player** by username — resolves UUID, skin, and cape via the Mojang API
 - **3D viewer** with 8 animations: idle, walk, run, wave, fly, swim, crouch, hit
 - **Cape rendering**, outer layer toggle, and auto-rotate in the 3D viewer
-- **Pixel editor** — pencil tool, adjustable brush size, undo/redo (50 levels), region overlay, pixel grid
+- **Pixel editor** — pencil, eraser, eyedropper, flood fill, rect, line, darken, lighten tools; adjustable brush size; undo/redo (50 levels); region overlay; pixel grid
+- **Mirror mode** — symmetrically paints the opposite limb as you draw; arms and legs cross-mirror between left and right sides; body front/back/top/bottom self-mirror along the vertical centre; body left/right side faces cross-mirror each other; does not apply to Head or Hat; toggle persists across sessions
 - **Steve / Alex model detection** — slim arms handled automatically
 - **Upload your own skin** PNG to view or edit it
 - **Favorites sidebar** — save players locally (persisted to localStorage)
