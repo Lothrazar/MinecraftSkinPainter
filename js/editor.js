@@ -319,28 +319,7 @@ export class Editor {
     const y    = py * SCALE;
     const size = this._brushSize * SCALE;
 
-    if (this._tool === 'eraser') {
-      this.ctx.clearRect(x, y, size, size);
-    } else if (this._tool === 'darken' || this._tool === 'lighten') {
-      const imageData = this.ctx.getImageData(x, y, size, size);
-      const d = imageData.data;
-      for (let i = 0; i < d.length; i += 4) {
-        if (d[i + 3] === 0) continue;
-        if (this._tool === 'darken') {
-          d[i]     = Math.round(d[i]     * 0.95);
-          d[i + 1] = Math.round(d[i + 1] * 0.95);
-          d[i + 2] = Math.round(d[i + 2] * 0.95);
-        } else {
-          d[i]     = 255 - Math.round((255 - d[i])     * 0.95);
-          d[i + 1] = 255 - Math.round((255 - d[i + 1]) * 0.95);
-          d[i + 2] = 255 - Math.round((255 - d[i + 2]) * 0.95);
-        }
-      }
-      this.ctx.putImageData(imageData, x, y);
-    } else {
-      this.ctx.fillStyle = this._brushColor;
-      this.ctx.fillRect(x, y, size, size);
-    }
+    this._applyPixelOp(x, y, size, size);
 
     if (this._mirrorMode) {
       for (let dy = 0; dy < this._brushSize; dy++) {
@@ -353,12 +332,16 @@ export class Editor {
   }
 
   _paintAt(px, py) {
-    const x = px * SCALE;
-    const y = py * SCALE;
+    this._applyPixelOp(px * SCALE, py * SCALE, SCALE, SCALE);
+  }
+
+  // Shared eraser/darken/lighten/fill logic for a canvas-space rect, used by
+  // both the primary brush stroke (_paint) and its mirrored counterpart (_paintAt).
+  _applyPixelOp(x, y, w, h) {
     if (this._tool === 'eraser') {
-      this.ctx.clearRect(x, y, SCALE, SCALE);
+      this.ctx.clearRect(x, y, w, h);
     } else if (this._tool === 'darken' || this._tool === 'lighten') {
-      const imageData = this.ctx.getImageData(x, y, SCALE, SCALE);
+      const imageData = this.ctx.getImageData(x, y, w, h);
       const d = imageData.data;
       for (let i = 0; i < d.length; i += 4) {
         if (d[i + 3] === 0) continue;
@@ -375,7 +358,7 @@ export class Editor {
       this.ctx.putImageData(imageData, x, y);
     } else {
       this.ctx.fillStyle = this._brushColor;
-      this.ctx.fillRect(x, y, SCALE, SCALE);
+      this.ctx.fillRect(x, y, w, h);
     }
   }
 

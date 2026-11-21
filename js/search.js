@@ -10,6 +10,7 @@ export class Search {
     this._openEditor   = openEditor;
     this._closeViewer  = closeViewer;
     this._onFavsUpdate = onFavsUpdate;
+    this._gen           = 0; // bumped per lookup() call so a stale response can't overwrite a newer one
   }
 
   setError(msg) {
@@ -45,15 +46,18 @@ export class Search {
   async lookup() {
     const name = $('username').value.trim();
     if (!name) return;
+    const gen = ++this._gen;
     this.setLoading(true);
     try {
       const res = await fetch(`https://api.ashcon.app/mojang/v2/user/${encodeURIComponent(name)}`);
+      if (gen !== this._gen) return; // superseded by a newer lookup
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
         throw new Error(err.reason || `API error (${res.status}). Try again shortly.`);
       }
 
       const data        = await res.json();
+      if (gen !== this._gen) return; // superseded by a newer lookup
       const uuid        = data.uuid;
       const displayName = data.username;
       const skinUrl     = data.textures?.skin?.url;
@@ -96,9 +100,10 @@ export class Search {
       this._onFavsUpdate(uuid, displayName);
 
     } catch (e) {
+      if (gen !== this._gen) return; // superseded by a newer lookup
       this.setError(e.message);
     } finally {
-      this.setLoading(false);
+      if (gen === this._gen) this.setLoading(false);
     }
   }
 
